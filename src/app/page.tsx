@@ -34,14 +34,19 @@ export default function HomePage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('courses')
-      .select('*')
+      .select('*, enrollments(count)')
+      .eq('enrollments.status', 'waiting')
       .order('title', { ascending: true })
 
     if (error) {
       console.error('Supabase Error Detail:', error)
       setError(error)
     } else {
-      setCourses(data || [])
+      const processedData = data?.map(course => ({
+        ...course,
+        waiting_count: course.enrollments?.[0]?.count || 0
+      }))
+      setCourses(processedData || [])
       setError(null)
     }
     setLoading(false)
@@ -168,21 +173,32 @@ export default function HomePage() {
             
             <div className="pt-6 border-t border-gray-50 flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-[0.6rem] text-gray-400 font-bold mb-1 uppercase tracking-widest">현재 인원</span>
-                <span className={`text-2xl font-black ${course.current_count >= course.max_capacity ? 'text-red-500' : 'text-blue-600'}`}>
-                  {course.current_count} <span className="text-sm text-gray-300 font-medium">/ {course.max_capacity}</span>
+                <span className="text-[0.6rem] text-gray-400 font-bold mb-1 uppercase tracking-widest">
+                  {course.current_count >= course.max_capacity ? '대기 인원' : '현재 인원'}
+                </span>
+                <span className={`text-2xl font-black ${course.current_count >= course.max_capacity ? 'text-orange-500' : 'text-blue-600'}`}>
+                  {course.current_count >= course.max_capacity 
+                    ? `${course.waiting_count} ` 
+                    : `${course.current_count} `}
+                  <span className="text-sm text-gray-300 font-medium">
+                    / {course.current_count >= course.max_capacity ? '10' : course.max_capacity}
+                  </span>
                 </span>
               </div>
               <Button 
                 onClick={() => handleEnrollClick(course)}
-                disabled={course.current_count >= course.max_capacity}
+                disabled={course.current_count >= course.max_capacity && course.waiting_count >= 10}
                 className={`px-6 py-6 rounded-2xl font-black text-base transition-all shadow-lg ${
                   course.current_count >= course.max_capacity 
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' 
+                  ? (course.waiting_count >= 10 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' 
+                      : 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-100')
                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 hover:shadow-blue-300'
                 }`}
               >
-                {course.current_count >= course.max_capacity ? '마감' : '신청'}
+                {course.current_count >= course.max_capacity 
+                  ? (course.waiting_count >= 10 ? '마감' : '대기 신청') 
+                  : '신청'}
               </Button>
             </div>
           </div>

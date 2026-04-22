@@ -141,8 +141,12 @@ export default function AdminPage() {
                       {en.profiles?.phone_number || '-'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${en.status === 'approved' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                        {en.status === 'approved' ? '승인됨' : '대기중'}
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                        en.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                        en.status === 'waiting' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'
+                      }`}>
+                        {en.status === 'approved' ? '승인됨' : 
+                         en.status === 'waiting' ? '대기자' : '대기중'}
                       </span>
                     </td>
                   </tr>
