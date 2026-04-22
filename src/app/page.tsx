@@ -145,7 +145,7 @@ export default function HomePage() {
   return (
     <div className="max-w-[90rem] mx-auto p-6 min-h-screen bg-gray-50/50">
       <header className="mb-12 text-center pt-8">
-        <h1 className="text-5xl font-black text-gray-900 mb-4 tracking-tight">🏫 방과후학교 수강 신청</h1>
+        <h1 className="text-5xl font-black text-gray-900 mb-4 tracking-tight">🏫 제2기 방과후학교 수강 신청</h1>
         <p className="text-gray-500 text-xl font-medium">원하는 강좌를 선택하여 선착순으로 신청하세요!</p>
       </header>
 
