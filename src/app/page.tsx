@@ -231,8 +231,10 @@ export default function HomePage() {
                   <label className={`flex-1 flex items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer font-bold ${formData.privacy_agreed ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'}`}>
                     <input type="radio" className="hidden" name="privacy" checked={formData.privacy_agreed === true} onChange={() => setFormData({...formData, privacy_agreed: true})} /> 예
                   </label>
-                  <label className={`flex-1 flex items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer font-bold ${formData.privacy_agreed === false ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'}`}>
-                    <input type="radio" className="hidden" name="privacy" checked={formData.privacy_agreed === false} onChange={() => setFormData({...formData, privacy_agreed: false})} /> 아니요
+                  <label className={`flex-1 flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer font-bold ${formData.privacy_agreed === false ? 'border-red-400 bg-red-50 text-red-600' : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'}`}>
+                    <input type="radio" className="hidden" name="privacy" checked={formData.privacy_agreed === false} onChange={() => setFormData({...formData, privacy_agreed: false})} /> 
+                    <span>아니요</span>
+                    <span className="text-[0.6rem] font-medium mt-1">(수강 신청 불가)</span>
                   </label>
                 </div>
               </div>
