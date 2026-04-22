@@ -149,8 +149,8 @@ export default function HomePage() {
           <div key={course.id} className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300">
             <div>
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-3xl font-bold text-gray-800 leading-tight">{course.title}</h2>
-                <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-2xl font-bold text-sm">
+                <h2 className="text-[1.6rem] font-bold text-gray-800 leading-tight break-keep">{course.title}</h2>
+                <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-2xl font-bold text-xs shrink-0 ml-2">
                   정원 {course.max_capacity}명
                 </div>
               </div>
