@@ -138,29 +138,29 @@ export default function HomePage() {
   )
 
   return (
-    <div className="max-w-6xl mx-auto p-6 min-h-screen bg-gray-50/50">
+    <div className="max-w-[90rem] mx-auto p-6 min-h-screen bg-gray-50/50">
       <header className="mb-12 text-center pt-8">
         <h1 className="text-5xl font-black text-gray-900 mb-4 tracking-tight">🏫 방과후학교 수강 신청</h1>
         <p className="text-gray-500 text-xl font-medium">원하는 강좌를 선택하여 선착순으로 신청하세요!</p>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {courses.map((course) => (
-          <div key={course.id} className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-8 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300">
+          <div key={course.id} className="bg-white rounded-[2rem] shadow-xl shadow-gray-100/50 border border-gray-100 p-6 flex flex-col justify-between hover:scale-[1.02] transition-all duration-300">
             <div>
               <div className="flex justify-between items-start mb-6">
-                <h2 className="text-[1.6rem] font-bold text-gray-800 leading-tight break-keep">{course.title}</h2>
-                <div className="bg-blue-50 text-blue-600 px-4 py-2 rounded-2xl font-bold text-xs shrink-0 ml-2">
+                <h2 className="text-[1.4rem] font-bold text-gray-800 leading-tight break-keep">{course.title}</h2>
+                <div className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-2xl font-bold text-[0.7rem] shrink-0 ml-2">
                   정원 {course.max_capacity}명
                 </div>
               </div>
               <div className="space-y-4 mb-8">
-                <div className="flex items-center gap-3 text-gray-600 font-medium">
-                  <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-lg">👤</span>
+                <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
+                  <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">👤</span>
                   {course.instructor}
                 </div>
-                <div className="flex items-center gap-3 text-gray-600 font-medium">
-                  <span className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-lg text-lg">🕒</span>
+                <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
+                  <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">🕒</span>
                   {course.schedule}
                 </div>
               </div>
@@ -168,15 +168,15 @@ export default function HomePage() {
             
             <div className="pt-6 border-t border-gray-50 flex items-center justify-between">
               <div className="flex flex-col">
-                <span className="text-xs text-gray-400 font-bold mb-1 uppercase tracking-widest">현재 인원</span>
-                <span className={`text-3xl font-black ${course.current_count >= course.max_capacity ? 'text-red-500' : 'text-blue-600'}`}>
-                  {course.current_count} <span className="text-lg text-gray-300 font-medium">/ {course.max_capacity}</span>
+                <span className="text-[0.6rem] text-gray-400 font-bold mb-1 uppercase tracking-widest">현재 인원</span>
+                <span className={`text-2xl font-black ${course.current_count >= course.max_capacity ? 'text-red-500' : 'text-blue-600'}`}>
+                  {course.current_count} <span className="text-sm text-gray-300 font-medium">/ {course.max_capacity}</span>
                 </span>
               </div>
               <Button 
                 onClick={() => handleEnrollClick(course)}
                 disabled={course.current_count >= course.max_capacity}
-                className={`px-10 py-8 rounded-2xl font-black text-lg transition-all shadow-lg ${
+                className={`px-6 py-6 rounded-2xl font-black text-base transition-all shadow-lg ${
                   course.current_count >= course.max_capacity 
                   ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' 
                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 hover:shadow-blue-300'
