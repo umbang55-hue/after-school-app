@@ -145,7 +145,7 @@ export default function HomePage() {
   return (
     <div className="max-w-[90rem] mx-auto p-6 min-h-screen bg-gray-50/50">
       <header className="mb-12 text-center pt-8">
-        <h1 className="text-5xl font-black text-gray-900 mb-4 tracking-tight">🏫 제2기 방과후학교 수강 신청</h1>
+        <h1 className="text-5xl font-black text-gray-900 mb-4 tracking-tight">🏫 제4기 방과후학교 수강 신청</h1>
         <p className="text-gray-500 text-xl font-medium">원하는 강좌를 선택하여 선착순으로 신청하세요!</p>
       </header>
 
@@ -225,7 +225,7 @@ export default function HomePage() {
               <div className="p-6 bg-gray-50 rounded-3xl border border-gray-100">
                 <p className="text-sm font-medium text-gray-700 leading-relaxed mb-4">
                   1. 수강신청서의 제출로 방과후학교 수강 관리 및 문자 전송을 위해 보호자와 학생의 성명과 휴대전화 번호 등의 개인정보를 활용하는 것에 동의하십니까? 
-                  <span className="block mt-1 text-gray-400 text-xs">(개인정보보유기간: 제2기 방과후학교 운영기간)</span>
+                  <span className="block mt-1 text-gray-400 text-xs">(개인정보보유기간: 제4기 방과후학교 운영기간)</span>
                 </p>
                 <div className="flex gap-4">
                   <label className={`flex-1 flex items-center justify-center p-4 rounded-2xl border-2 transition-all cursor-pointer font-bold ${formData.privacy_agreed ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-400 hover:border-gray-300'}`}>
