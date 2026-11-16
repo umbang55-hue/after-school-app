@@ -38,7 +38,7 @@ export default function Navbar() {
         <div className="flex justify-between h-16 items-center">
           <div className="flex items-center">
             <Link href="/" className="text-xl font-bold text-blue-600 tracking-tight">
-              🏫 제2기 방과후학교 수강 신청
+              🏫 제4기 방과후학교 수강 신청
             </Link>
           </div>
           <div className="flex items-center gap-4">
