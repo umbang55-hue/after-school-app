@@ -160,13 +160,19 @@ export default function HomePage() {
               </div>
               <div className="space-y-4 mb-8">
                 <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
-                  <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">👤</span>
+                  <img src="/teacher.png" alt="지도 교사" className="w-7 h-7 rounded-lg object-cover shrink-0" />
                   {course.instructor}
                 </div>
                 <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
-                  <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">🕒</span>
-                  {course.schedule}
+                  <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">📅</span>
+                  {course.schedule?.split(' / ')[0]}
                 </div>
+                {course.schedule?.split(' / ')[1] && (
+                  <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
+                    <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">🕒</span>
+                    {course.schedule.split(' / ')[1]}
+                  </div>
+                )}
                 <div className="flex items-center gap-3 text-gray-600 text-sm font-medium">
                   <span className="w-7 h-7 flex items-center justify-center bg-gray-100 rounded-lg text-base">💰</span>
                   수강료: {course.price.toLocaleString()}원
