@@ -56,7 +56,7 @@ export default function AdminPage() {
         id,
         status,
         created_at,
-        profiles (full_name, student_id, phone_number),
+        profiles (full_name, grade, class_number, student_number, phone_number, parent_phone_number),
         courses (title)
       `)
       .order('created_at', { ascending: false })
@@ -64,6 +64,55 @@ export default function AdminPage() {
     setCourses(coursesData || [])
     setEnrollments(enrollmentsData || [])
     setLoading(false)
+  }
+
+  // 학년·반·번호를 "1학년 2반 3번" 형식으로
+  const formatStudentNo = (p: any) =>
+    p?.grade && p?.class_number && p?.student_number
+      ? `${p.grade}학년 ${p.class_number}반 ${p.student_number}번`
+      : '-'
+
+  const statusLabel = (status: string) =>
+    status === 'approved' ? '승인됨' : status === 'waiting' ? '대기자' : '대기중'
+
+  // 엑셀(CSV)로 내려받기: 강좌별 → 승인 먼저 → 신청 순서
+  const downloadCsv = () => {
+    const statusOrder: Record<string, number> = { approved: 0, waiting: 1, pending: 2 }
+    const rows = [...enrollments].sort((a, b) =>
+      (a.courses?.title || '').localeCompare(b.courses?.title || '', 'ko') ||
+      (statusOrder[a.status] ?? 9) - (statusOrder[b.status] ?? 9) ||
+      new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    )
+
+    const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`
+    // 전화번호 앞의 0이 엑셀에서 사라지지 않게 ="010..." 형식으로
+    const phone = (v: any) => (v ? `="${String(v).replace(/"/g, '')}"` : '')
+
+    const header = ['신청 강좌', '상태', '신청 시간', '이름', '학년', '반', '번호', '학생 연락처', '보호자 연락처']
+    const lines = rows.map((en) => [
+      escape(en.courses?.title),
+      escape(statusLabel(en.status)),
+      escape(new Date(en.created_at).toLocaleString('ko-KR')),
+      escape(en.profiles?.full_name),
+      escape(en.profiles?.grade),
+      escape(en.profiles?.class_number),
+      escape(en.profiles?.student_number),
+      phone(en.profiles?.phone_number),
+      phone(en.profiles?.parent_phone_number),
+    ].join(','))
+
+    const csv = '\uFEFF' + [header.map(escape).join(','), ...lines].join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const today = new Date()
+    const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
+    a.href = url
+    a.download = `방과후_신청명단_${ymd}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
   }
 
   if (!isAdmin || loading) {
@@ -104,7 +153,16 @@ export default function AdminPage() {
 
       {/* 2. 전체 신청자 상세 명단 */}
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold border-b pb-2 text-green-600">📋 전체 신청자 상세 명단</h2>
+        <div className="flex justify-between items-center border-b pb-2">
+          <h2 className="text-xl font-semibold text-green-600">📋 전체 신청자 상세 명단</h2>
+          <Button
+            onClick={downloadCsv}
+            disabled={enrollments.length === 0}
+            className="bg-green-600 text-white hover:bg-green-700"
+          >
+            📥 엑셀로 내려받기
+          </Button>
+        </div>
         <div className="overflow-x-auto border rounded-lg shadow-sm bg-white">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -113,26 +171,27 @@ export default function AdminPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">이름</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">학번</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">신청 강좌</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">연락처</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">학생 연락처</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">보호자 연락처</th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">상태</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {enrollments.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-gray-500 italic">아직 신청자가 없습니다.</td>
+                  <td colSpan={7} className="px-6 py-10 text-center text-gray-500 italic">아직 신청자가 없습니다.</td>
                 </tr>
               ) : (
                 enrollments.map((en) => (
                   <tr key={en.id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(en.created_at).toLocaleString()}
+                      {new Date(en.created_at).toLocaleString('ko-KR')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">
                       {en.profiles?.full_name || '이름 없음'}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {en.profiles?.student_id || '-'}
+                      {formatStudentNo(en.profiles)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-blue-700">
                       {en.courses?.title || '알 수 없는 강좌'}
@@ -140,13 +199,15 @@ export default function AdminPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                       {en.profiles?.phone_number || '-'}
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                      {en.profiles?.parent_phone_number || '-'}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                         en.status === 'approved' ? 'bg-green-100 text-green-800' : 
                         en.status === 'waiting' ? 'bg-orange-100 text-orange-800' : 'bg-yellow-100 text-yellow-800'
                       }`}>
-                        {en.status === 'approved' ? '승인됨' : 
-                         en.status === 'waiting' ? '대기자' : '대기중'}
+                        {statusLabel(en.status)}
                       </span>
                     </td>
                   </tr>
