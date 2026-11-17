@@ -34,8 +34,7 @@ export default function HomePage() {
     setLoading(true)
     const { data, error } = await supabase
       .from('courses')
-      .select('*, enrollments(count)')
-      .eq('enrollments.status', 'waiting')
+      .select('*')
       .order('title', { ascending: true })
 
     if (error) {
@@ -44,7 +43,7 @@ export default function HomePage() {
     } else {
       const processedData = data?.map(course => ({
         ...course,
-        waiting_count: course.enrollments?.[0]?.count || 0
+        waiting_count: course.waiting_count || 0
       }))
       setCourses(processedData || [])
       setError(null)
@@ -185,23 +184,23 @@ export default function HomePage() {
                     ? `${course.waiting_count} ` 
                     : `${course.current_count} `}
                   <span className="text-sm text-gray-300 font-medium">
-                    / {course.current_count >= course.max_capacity ? '10' : course.max_capacity}
+                    / {course.current_count >= course.max_capacity ? '15' : course.max_capacity}
                   </span>
                 </span>
               </div>
               <Button 
                 onClick={() => handleEnrollClick(course)}
-                disabled={course.current_count >= course.max_capacity && course.waiting_count >= 10}
+                disabled={course.current_count >= course.max_capacity && course.waiting_count >= 15}
                 className={`px-6 py-6 rounded-2xl font-black text-base transition-all shadow-lg ${
                   course.current_count >= course.max_capacity 
-                  ? (course.waiting_count >= 10 
+                  ? (course.waiting_count >= 15 
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none' 
                       : 'bg-orange-500 hover:bg-orange-600 text-white shadow-orange-100')
                   : 'bg-blue-600 hover:bg-blue-700 text-white shadow-blue-200 hover:shadow-blue-300'
                 }`}
               >
                 {course.current_count >= course.max_capacity 
-                  ? (course.waiting_count >= 10 ? '마감' : '대기 신청') 
+                  ? (course.waiting_count >= 15 ? '마감' : '대기 신청') 
                   : '신청'}
               </Button>
             </div>
