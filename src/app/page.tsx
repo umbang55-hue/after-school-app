@@ -214,6 +214,15 @@ export default function HomePage() {
         ))}
       </div>
 
+      {/* 신청 전 확인 안내 */}
+      <div className="mt-12 mb-8 max-w-3xl mx-auto bg-amber-50 border-2 border-amber-200 rounded-[2rem] p-8">
+        <h3 className="text-xl font-black text-amber-800 mb-4 flex items-center gap-2">⚠️ 신청 전 꼭 확인하세요</h3>
+        <ul className="space-y-3 text-amber-900 font-bold text-base leading-relaxed">
+          <li className="flex gap-2"><span>✔️</span><span>반드시 부모님과 상의 후 신청하세요!</span></li>
+          <li className="flex gap-2"><span>✔️</span><span>방과후 수업 기간 중 다른 일정(학원, 가족 여행 등)이 있는지 꼭 확인 후 신청하세요!</span></li>
+        </ul>
+      </div>
+
       {/* 수강 신청 상세 모달 */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50">
