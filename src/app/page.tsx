@@ -220,6 +220,7 @@ export default function HomePage() {
         <ul className="space-y-3 text-amber-900 font-bold text-base leading-relaxed">
           <li className="flex gap-2"><span>✔️</span><span>반드시 부모님과 상의 후 신청하세요!</span></li>
           <li className="flex gap-2"><span>✔️</span><span>방과후 수업 기간 중 다른 일정(학원, 가족 여행 등)이 있는지 꼭 확인 후 신청하세요!</span></li>
+          <li className="flex gap-2"><span>✔️</span><span>기타 방과후학교 신청과 관련한 문의 사항은 엄인우 선생님에게 문의하세요~</span></li>
         </ul>
       </div>
 
