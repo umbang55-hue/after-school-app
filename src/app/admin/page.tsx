@@ -54,10 +54,11 @@ export default function AdminPage() {
       .from('enrollments')
       .select(`
         id,
+        user_id,
         status,
         created_at,
-        profiles (full_name, grade, class_number, student_number, phone_number, parent_phone_number),
-        courses (title)
+        profiles (full_name, grade, class_number, student_number, phone_number, parent_phone_number, privacy_agreed),
+        courses (title, instructor)
       `)
       .order('created_at', { ascending: false })
 
@@ -75,7 +76,105 @@ export default function AdminPage() {
   const statusLabel = (status: string) =>
     status === 'approved' ? '승인됨' : status === 'waiting' ? '대기자' : '대기중'
 
-  // 엑셀(CSV)로 내려받기: 강좌별 → 승인 먼저 → 신청 순서
+  // CSV 파일 저장 공통 함수 (엑셀에서 한글이 깨지지 않게 BOM 추가)
+  const saveCsv = (lines: string[], name: string) => {
+    const csv = '\uFEFF' + lines.join('\r\n')
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    const today = new Date()
+    const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
+    a.href = url
+    a.download = `${name}_${ymd}.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  // 구글 설문 응답과 같은 시간 형식: 2026. 8. 24 오후 1:02:18
+  const formTime = (iso: string) => {
+    const d = new Date(iso)
+    const h = d.getHours()
+    const ampm = h < 12 ? '오전' : '오후'
+    const h12 = h % 12 === 0 ? 12 : h % 12
+    const mm = String(d.getMinutes()).padStart(2, '0')
+    const ss = String(d.getSeconds()).padStart(2, '0')
+    return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()} ${ampm} ${h12}:${mm}:${ss}`
+  }
+
+  // 구글 설문 응답 형식으로 내려받기: 학생 한 명당 한 줄, 신청 강좌는 쉼표로 이어서
+  const downloadFormCsv = () => {
+    const escape = (v: any) => `"${String(v ?? '').replace(/"/g, '""')}"`
+    const phone = (v: any) => (v ? `="${String(v).replace(/"/g, '')}"` : '')
+
+    // 강좌별 대기 순번 계산 (신청 시간 순)
+    const waitingNo: Record<string, number> = {}
+    const counter: Record<string, number> = {}
+    ;[...enrollments]
+      .filter((en) => en.status === 'waiting')
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+      .forEach((en) => {
+        const key = en.courses?.title || ''
+        counter[key] = (counter[key] || 0) + 1
+        waitingNo[en.id] = counter[key]
+      })
+
+    // 학생(계정)별로 묶기
+    const byStudent: Record<string, { profile: any; first: string; items: any[] }> = {}
+    enrollments.forEach((en) => {
+      const key = en.user_id
+      if (!byStudent[key]) byStudent[key] = { profile: en.profiles, first: en.created_at, items: [] }
+      if (new Date(en.created_at) < new Date(byStudent[key].first)) byStudent[key].first = en.created_at
+      byStudent[key].items.push(en)
+    })
+
+    const students = Object.values(byStudent).sort((a, b) =>
+      (a.profile?.grade ?? 99) - (b.profile?.grade ?? 99) ||
+      (a.profile?.class_number ?? 99) - (b.profile?.class_number ?? 99) ||
+      (a.profile?.student_number ?? 99) - (b.profile?.student_number ?? 99)
+    )
+
+    const courseLabel = (en: any) => {
+      const teacher = (en.courses?.instructor || '').replace(/\s*선생님\s*$/, '')
+      const base = teacher ? `${en.courses?.title}(${teacher})` : en.courses?.title
+      return en.status === 'waiting' ? `${base} 대기자 신청(대기 ${waitingNo[en.id]}번)` : base
+    }
+
+    const header = [
+      '타임스탬프',
+      '수강신청서의 제출로 방과후학교 수강 관리 및 문자 전송을 위해 보호자와 학생의 성명과 휴대전화 번호 등의 개인정보를 활용하는 것에 동의하십니까? (개인정보보유기간 : 제4기 방과후학교 운영기간)',
+      '학년',
+      '반',
+      '번호',
+      '이름',
+      '방과후학교 수업을 신청하는 학생의 연락처',
+      '학생 보호자의 연락처',
+      '희망하는 방과후학교 수업을 선택하세요.(복수 선택 가능)',
+    ]
+
+    const lines = students.map(({ profile, first, items }) => {
+      const courses = [...items]
+        .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+        .map(courseLabel)
+        .join(', ')
+      return [
+        escape(formTime(first)),
+        escape(profile?.privacy_agreed === false ? '아니요' : '예'),
+        escape(profile?.grade),
+        escape(profile?.class_number),
+        escape(profile?.student_number),
+        escape(profile?.full_name),
+        phone(profile?.phone_number),
+        phone(profile?.parent_phone_number),
+        escape(courses),
+      ].join(',')
+    })
+
+    saveCsv([header.map(escape).join(','), ...lines], '제4기_방과후학교_수강신청(응답)')
+  }
+
+  // 강좌별 명단 내려받기: 강좌별 → 승인 먼저 → 신청 순서
   const downloadCsv = () => {
     const statusOrder: Record<string, number> = { approved: 0, waiting: 1, pending: 2 }
     const rows = [...enrollments].sort((a, b) =>
@@ -101,18 +200,7 @@ export default function AdminPage() {
       phone(en.profiles?.parent_phone_number),
     ].join(','))
 
-    const csv = '\uFEFF' + [header.map(escape).join(','), ...lines].join('\r\n')
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    const today = new Date()
-    const ymd = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
-    a.href = url
-    a.download = `방과후_신청명단_${ymd}.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    saveCsv([header.map(escape).join(','), ...lines], '방과후_강좌별_명단')
   }
 
   if (!isAdmin || loading) {
@@ -155,13 +243,22 @@ export default function AdminPage() {
       <section className="space-y-4">
         <div className="flex justify-between items-center border-b pb-2">
           <h2 className="text-xl font-semibold text-green-600">📋 전체 신청자 상세 명단</h2>
-          <Button
-            onClick={downloadCsv}
-            disabled={enrollments.length === 0}
-            className="bg-green-600 text-white hover:bg-green-700"
-          >
-            📥 엑셀로 내려받기
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={downloadFormCsv}
+              disabled={enrollments.length === 0}
+              className="bg-green-600 text-white hover:bg-green-700"
+            >
+              📥 신청 현황 (구글 설문 형식)
+            </Button>
+            <Button
+              onClick={downloadCsv}
+              disabled={enrollments.length === 0}
+              variant="outline"
+            >
+              📥 강좌별 명단
+            </Button>
+          </div>
         </div>
         <div className="overflow-x-auto border rounded-lg shadow-sm bg-white">
           <table className="min-w-full divide-y divide-gray-200">
